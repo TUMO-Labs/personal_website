@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Maria Aslanyan</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Animated background canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-name">Maria Aslanyan</div>
+    <div class="nav-links">
+      <a href="https://www.linkedin.com/in/maria-aslanyan-797147334/" target="_blank" class="nav-link btn-anim">LinkedIn</a>
+      <a href="/static/assets/CV_Maria_Aslanyan.pdf" target="_blank" class="nav-link btn-anim">CV</a>
+    </div>
+  </nav>
+
+  <!-- Welcome banner -->
+  <section class="welcome-banner">
+    <img
+      src="https://media1.tenor.com/m/bPdrsNyS1BAAAAAd/marissa-hello-kitty.gif"
+      alt="Hello Kitty"
+      class="welcome-gif"
+    />
+    <p class="welcome-text reveal-fade" data-delay="200">welcome to my personal website !</p>
+  </section>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-tag reveal-line" data-delay="0">Applied Mathematics & Informatics</div>
+      <h1 class="hero-title">
+        <span class="line reveal-line" data-delay="100">Maria</span>
+        <span class="line italic reveal-line" data-delay="220">Aslanyan</span>
+      </h1>
+      <p class="hero-sub reveal-line" data-delay="360">
+        Student · Developer · Problem Solver<br>
+        <span class="location">📍 Yerevan, Armenia</span>
+      </p>
+      <div class="hero-cta reveal-line" data-delay="500">
+        <a href="https://www.linkedin.com/in/maria-aslanyan-797147334/" target="_blank" class="btn btn-anim">Connect</a>
+        <a href="/static/assets/CV_Maria_Aslanyan.pdf" target="_blank" class="btn btn-outline btn-anim">Download CV</a>
+      </div>
+    </div>
+    <div class="hero-right reveal-image">
+      <div class="photo-wrap">
+        <img src="/static/assets/maria.jpg" alt="Maria Aslanyan" class="hero-photo" />
+        <div class="photo-border"></div>
+        <span class="photo-tag">Maria Aslanyan · Yerevan</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- About strip -->
+  <section class="about-strip">
+    <div class="strip-item reveal-fade">
+      <span class="strip-label">University</span>
+      <span class="strip-val">Russian-Armenian University</span>
+    </div>
+    <div class="strip-divider"></div>
+    <div class="strip-item reveal-fade">
+      <span class="strip-label">Program</span>
+      <span class="strip-val">3rd Year · Applied Math & CS</span>
+    </div>
+    <div class="strip-divider"></div>
+    <div class="strip-item reveal-fade">
+      <span class="strip-label">Also at</span>
+      <span class="strip-val">TUMO Labs</span>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section class="skills-section">
+    <div class="section-header reveal-fade">
+      <span class="section-num">01</span>
+      <span class="section-title">Skills</span>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card reveal-fade">
+        <div class="skill-icon">⌨️</div>
+        <div class="skill-name">C / C++</div>
+        <div class="skill-desc">Systems programming, data structures & algorithms, competitive programming</div>
+      </div>
+      <div class="skill-card reveal-fade">
+        <div class="skill-icon">🐍</div>
+        <div class="skill-name">Python</div>
+        <div class="skill-desc">Scripting, automation, data analysis and backend development</div>
+      </div>
+      <div class="skill-card reveal-fade">
+        <div class="skill-icon">∑</div>
+        <div class="skill-name">Applied Mathematics</div>
+        <div class="skill-desc">Further mathematics, algorithms, Olympiad problem-solving</div>
+      </div>
+      <div class="skill-card reveal-fade">
+        <div class="skill-icon">🗄</div>
+        <div class="skill-name">SQL</div>
+        <div class="skill-desc">Database design and querying</div>
+      </div>
+      <div class="skill-card reveal-fade">
+        <div class="skill-icon">⚙️</div>
+        <div class="skill-name">Assembly</div>
+        <div class="skill-desc">Low-level programming fundamentals</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Education -->
+  <section class="edu-section">
+    <div class="section-header reveal-fade">
+      <span class="section-num">02</span>
+      <span class="section-title">Education</span>
+    </div>
+    <div class="edu-list">
+      <div class="edu-item reveal-fade">
+        <div class="edu-year">2023 — 2027</div>
+        <div class="edu-body">
+          <div class="edu-school">Russian-Armenian University</div>
+          <div class="edu-degree">B.Sc. Applied Mathematics & Informatics</div>
+        </div>
+        <div class="edu-badge">Current</div>
+      </div>
+      <div class="edu-item reveal-fade">
+        <div class="edu-year">2025 — Present</div>
+        <div class="edu-body">
+          <div class="edu-school">TUMO Labs</div>
+          <div class="edu-degree">Advanced Tech & Creative Lab Program</div>
+        </div>
+        <div class="edu-badge">Current</div>
+      </div>
+      <div class="edu-item reveal-fade">
+        <div class="edu-year">2018 — 2022</div>
+        <div class="edu-body">
+          <div class="edu-school">TUMO Center for Creative Technologies</div>
+          <div class="edu-degree">Technology & Design Program</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Activities -->
+  <section class="activities-section">
+    <div class="section-header reveal-fade">
+      <span class="section-num">03</span>
+      <span class="section-title">Activities</span>
+    </div>
+    <div class="activities-list">
+      <div class="activity-item reveal-fade">
+        <span class="activity-icon">🏆</span>
+        <span class="activity-text">Mathematics Olympiad — Russian-Armenian University</span>
+      </div>
+      <div class="activity-item reveal-fade">
+        <span class="activity-icon">💻</span>
+        <span class="activity-text">Active member — University Competitive Programming Team</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-name">Maria Aslanyan</div>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/maria-aslanyan-797147334/" target="_blank" class="footer-link btn-anim">LinkedIn</a>
+      <a href="/static/assets/CV_Maria_Aslanyan.pdf" target="_blank" class="footer-link btn-anim">CV / Resume</a>
+      <a href="mailto:mariaaslanyan96@gmail.com" class="footer-link btn-anim">Email</a>
+    </div>
+    <div class="footer-copy">© 2025 · Yerevan, Armenia</div>
+  </footer>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
