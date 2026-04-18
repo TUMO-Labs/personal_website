@@ -199,12 +199,7 @@ img { display: block; max-width: 100%; }
   width: 300px;
   height: 420px;
   object-fit: cover;
-  object-position: top center;
-  display: block;
-  border-radius: 2px;
-  filter: contrast(1.04) saturate(0.95);
-  transition: filter 0.4s ease, transform 0.4s ease;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  object-position: 50% 50%; 
 }
 .hero-photo:hover {
   filter: contrast(1.0) saturate(1.05);
