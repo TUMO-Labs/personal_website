@@ -7,7 +7,7 @@
     #chat-bubble {
       position: fixed;
       bottom: 28px;
-      left: 28px;
+      right: 28px;
       z-index: 9000;
       display: flex;
       align-items: center;
@@ -62,7 +62,7 @@
     #chat-window {
       position: fixed;
       bottom: 90px;
-      left: 28px;
+      right: 28px;
       z-index: 9001;
       width: 320px;
       max-height: 430px;
@@ -73,7 +73,7 @@
       flex-direction: column;
       box-shadow: 0 12px 48px rgba(184,53,122,0.18);
       transform: scale(0.88) translateY(12px);
-      transform-origin: bottom left;
+      transform-origin: bottom right;
       opacity: 0;
       pointer-events: none;
       transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
