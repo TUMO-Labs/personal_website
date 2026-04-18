@@ -11,8 +11,8 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # ── Telegram config ─────────────────────────────────────────────────────────
 # Set these as environment variables, or replace the defaults below for local dev
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
-TELEGRAM_CHAT_ID   = os.environ.get('TELEGRAM_CHAT_ID',   'YOUR_CHAT_ID_HERE')
+TELEGRAM_BOT_TOKEN = '8262015430:AAHbdyCiabIXzHtwCptRPGeiky8pMhECK5k'
+TELEGRAM_CHAT_ID   = '1300257269'
 
 # Maps telegram message_id → visitor socket session id
 pending_replies = {}   # { telegram_msg_id: visitor_sid }
