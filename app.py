@@ -9,36 +9,45 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'maria-secret-key-change
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-# ── Telegram config ─────────────────────────────────────────────────────────
-# Set these as environment variables, or replace the defaults below for local dev
-TELEGRAM_BOT_TOKEN = '8262015430:AAHbdyCiabIXzHtwCptRPGeiky8pMhECK5k'
-TELEGRAM_CHAT_ID   = '1300257269'
+# ── Telegram config ──────────────────────────────────────────────────────────
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
+TELEGRAM_CHAT_ID   = os.environ.get('TELEGRAM_CHAT_ID',   'YOUR_CHAT_ID_HERE')
 
-# Maps telegram message_id → visitor socket session id
-pending_replies = {}   # { telegram_msg_id: visitor_sid }
-session_to_room  = {}  # { visitor_sid: room_id }
+session_to_room = {}   # { visitor_sid: room_id }
+session_to_username = {}  # { visitor_sid: telegram_username }
 
-def send_telegram(text: str, visitor_sid: str):
-    """Forward a visitor message to your Telegram. Returns the sent message_id."""
+def send_telegram_notification(username: str, message: str):
+    """
+    Send Maria a Telegram notification with a direct link to the visitor's profile.
+    No webhook / ngrok needed — Maria just taps the link to open a private chat.
+    """
     if TELEGRAM_BOT_TOKEN == 'YOUR_BOT_TOKEN_HERE':
-        print(f"[TELEGRAM STUB] Would send: {text}")
-        return None
+        print(f"[TELEGRAM STUB] @{username}: {message}")
+        return
+
+    # Clean up username — remove @ if they included it
+    clean = username.lstrip('@').strip()
+
+    text = (
+        f"💬 *New message on your website!*\n\n"
+        f"👤 Username: @{clean}\n"
+        f"✉️ Message: {message}\n\n"
+        f"👇 Tap to open chat with them:\n"
+        f"https://t.me/{clean}"
+    )
+
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
-        "text": f"💬 *Visitor says:*\n{text}\n\n_Reply to this message to respond to them._",
+        "text": text,
         "parse_mode": "Markdown",
+        "disable_web_page_preview": False,
     }
     try:
         r = requests.post(url, json=payload, timeout=10)
-        data = r.json()
-        if data.get("ok"):
-            msg_id = data["result"]["message_id"]
-            pending_replies[msg_id] = visitor_sid
-            return msg_id
+        print(f"[Telegram] sent notification for @{clean}: {r.status_code}")
     except Exception as e:
         print(f"[Telegram error] {e}")
-    return None
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────
@@ -52,30 +61,6 @@ def serve_asset(filename):
         os.path.join(app.root_path, 'static', 'assets'), filename
     )
 
-@app.route('/telegram-webhook', methods=['POST'])
-def telegram_webhook():
-    """
-    Telegram calls this when you REPLY to a forwarded visitor message.
-    For local dev: run  ngrok http 5000  then set the webhook once:
-      https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<ngrok-id>.ngrok.io/telegram-webhook
-    """
-    data = request.get_json(silent=True) or {}
-    message = data.get('message', {})
-    reply_to = message.get('reply_to_message', {})
-    if not reply_to:
-        return 'ok', 200
-
-    replied_msg_id = reply_to.get('message_id')
-    text = message.get('text', '')
-    visitor_sid = pending_replies.get(replied_msg_id)
-
-    if visitor_sid and text:
-        room = session_to_room.get(visitor_sid)
-        if room:
-            socketio.emit('maria_reply', {'text': text}, room=room)
-
-    return 'ok', 200
-
 
 # ── Socket events ────────────────────────────────────────────────────────────
 @socketio.on('connect')
@@ -88,15 +73,33 @@ def on_connect():
 @socketio.on('disconnect')
 def on_disconnect():
     session_to_room.pop(request.sid, None)
+    session_to_username.pop(request.sid, None)
+
+@socketio.on('submit_username')
+def on_submit_username(data):
+    """Visitor submitted their Telegram username."""
+    username = (data.get('username') or '').strip().lstrip('@')
+    if not username:
+        emit('username_error', {'text': 'Please enter a valid Telegram username.'})
+        return
+    session_to_username[request.sid] = username
+    emit('username_accepted', {'username': username})
 
 @socketio.on('visitor_message')
 def on_visitor_message(data):
+    """Visitor sent their message — forward to Telegram with their username."""
     text = (data.get('text') or '').strip()
+    username = session_to_username.get(request.sid)
+
+    if not username:
+        emit('ask_username')
+        return
     if not text:
         return
-    print(f"[MSG from {request.sid[:8]}] {text}")
-    send_telegram(text, request.sid)
-    emit('message_received', {'text': text})
+
+    print(f"[MSG] @{username}: {text}")
+    send_telegram_notification(username, text)
+    emit('message_sent')
 
 
 # ── Run ──────────────────────────────────────────────────────────────────────
