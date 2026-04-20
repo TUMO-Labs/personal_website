@@ -3,6 +3,9 @@ import uuid
 import requests
 from flask import Flask, render_template, send_from_directory, request
 from flask_socketio import SocketIO, emit, join_room
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'maria-secret-key-change-in-prod')
@@ -40,7 +43,7 @@ def send_telegram_notification(username: str, message: str):
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": text,
-        "parse_mode": "Markdown",
+     #   "parse_mode": "Markdown",
         "disable_web_page_preview": False,
     }
     try:
