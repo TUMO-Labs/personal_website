@@ -1,7 +1,3 @@
-/* =====================================================
-   CHAT WIDGET — username flow, no webhook needed
-   ===================================================== */
-
 (function () {
   const style = document.createElement('style');
   style.textContent = `
@@ -31,8 +27,6 @@
       box-shadow: 0 8px 28px rgba(247,192,229,0.6);
     }
     #chat-bubble .bubble-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
-
-    /* Notification badge */
     #chat-badge {
       position: absolute;
       top: -6px;
@@ -45,8 +39,6 @@
       border: 2px solid #F7C0E5;
     }
     #chat-badge.show { display: block; }
-
-    /* Chat window */
     #chat-window {
       position: fixed;
       bottom: 90px;
@@ -72,8 +64,6 @@
       opacity: 1;
       pointer-events: all;
     }
-
-    /* Header */
     #chat-header {
       display: flex;
       align-items: center;
@@ -106,35 +96,27 @@
       line-height: 1; transition: color 0.2s;
     }
     #chat-close:hover { color: #5a1a45; }
-
-    /* Step panels */
-    .chat-step {
-      display: none;
-      flex-direction: column;
-      flex: 1;
-    }
+    .chat-step { display: none; flex-direction: column; flex: 1; }
     .chat-step.active { display: flex; }
-
-    /* ── Step 1: username form ── */
-    #step-username {
+    #step-register {
       padding: 24px 20px;
       gap: 14px;
       align-items: center;
       text-align: center;
     }
-    #step-username .step-intro {
+    #step-register .step-intro {
       font-size: 12px;
       color: #7a2258;
       line-height: 1.6;
       letter-spacing: 0.04em;
     }
-    #step-username .step-intro strong {
+    #step-register .step-intro strong {
       display: block;
       font-size: 14px;
       color: #5a1a45;
       margin-bottom: 6px;
     }
-    #username-input {
+    .reg-input {
       width: 100%;
       border: 1.5px solid #e8a0d0;
       border-radius: 20px;
@@ -146,16 +128,17 @@
       outline: none;
       transition: border-color 0.2s;
       text-align: center;
+      box-sizing: border-box;
     }
-    #username-input::placeholder { color: #c090b0; }
-    #username-input:focus { border-color: #b8357a; }
-    #username-error {
+    .reg-input::placeholder { color: #c090b0; }
+    .reg-input:focus { border-color: #b8357a; }
+    #reg-error {
       font-size: 10px;
       color: #b8357a;
       letter-spacing: 0.06em;
       min-height: 14px;
     }
-    #username-submit {
+    #reg-submit {
       width: 100%;
       padding: 10px;
       background: #b8357a;
@@ -169,13 +152,9 @@
       cursor: pointer;
       transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
     }
-    #username-submit:hover { transform: translateY(-2px); background: #d04090; }
-    #username-submit:active { transform: translateY(1px); }
-
-    /* ── Step 2: message form ── */
-    #step-message {
-      flex-direction: column;
-    }
+    #reg-submit:hover { transform: translateY(-2px); background: #d04090; }
+    #reg-submit:active { transform: translateY(1px); }
+    #step-message { flex-direction: column; }
     #chat-messages {
       flex: 1;
       overflow-y: auto;
@@ -184,12 +163,11 @@
       flex-direction: column;
       gap: 8px;
       min-height: 160px;
-      max-height: 220px;
+      max-height: 260px;
       scroll-behavior: smooth;
     }
     #chat-messages::-webkit-scrollbar { width: 3px; }
     #chat-messages::-webkit-scrollbar-thumb { background: #e8a0d0; border-radius: 2px; }
-
     .chat-msg {
       max-width: 85%;
       padding: 8px 12px;
@@ -204,8 +182,27 @@
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
     .chat-msg.visitor {
-      background: #F7C0E5; color: #4a1038;
-      align-self: flex-end; border-bottom-right-radius: 4px;
+      background: #F7C0E5;
+      color: #4a1038;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-msg.maria {
+      background: #fff;
+      color: #3a1030;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      border: 1.5px solid #f0c8e4;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .chat-msg.maria .maria-label {
+      font-size: 9px;
+      color: #b8357a;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
     }
     .chat-msg.system {
       background: transparent; color: #9a7090;
@@ -218,7 +215,6 @@
       font-size: 11px; border: 1px solid #a8e0c0;
       border-radius: 12px; padding: 8px 14px;
     }
-
     #chat-input-row {
       display: flex;
       gap: 8px;
@@ -255,7 +251,6 @@
   `;
   document.head.appendChild(style);
 
-  /* ── Build DOM ───────────────────────────────── */
   const bubble = document.createElement('div');
   bubble.id = 'chat-bubble';
   bubble.innerHTML = `
@@ -276,19 +271,16 @@
       </div>
       <button id="chat-close" title="Close">×</button>
     </div>
-
-    <!-- Step 1: ask for Telegram username -->
-    <div class="chat-step active" id="step-username">
+    <div class="chat-step active" id="step-register">
       <div class="step-intro">
         <strong>Hey there! 👋</strong>
-        Enter your Telegram username so I can reply to you directly.
+        Enter your name and Telegram username so I can reply to you directly.
       </div>
-      <input id="username-input" type="text" placeholder="@yourusername" maxlength="32" />
-      <div id="username-error"></div>
-      <button id="username-submit">Continue →</button>
+      <input id="reg-name" class="reg-input" type="text" placeholder="Your name" maxlength="50" />
+      <input id="reg-tg" class="reg-input" type="text" placeholder="@yourusername" maxlength="32" />
+      <div id="reg-error"></div>
+      <button id="reg-submit">Start chatting →</button>
     </div>
-
-    <!-- Step 2: write message -->
     <div class="chat-step" id="step-message">
       <div id="chat-messages">
         <div class="chat-msg system">Say hello 👋</div>
@@ -301,27 +293,26 @@
   `;
   document.body.appendChild(win);
 
-  /* ── Refs ──────────────────────────────────────────── */
-  const badge         = document.getElementById('chat-badge');
-  const stepUsername  = document.getElementById('step-username');
-  const stepMessage   = document.getElementById('step-message');
-  const usernameInput = document.getElementById('username-input');
-  const usernameError = document.getElementById('username-error');
-  const usernameBtn   = document.getElementById('username-submit');
-  const messagesEl    = document.getElementById('chat-messages');
-  const inputEl       = document.getElementById('chat-input');
-  const sendBtn       = document.getElementById('chat-send');
+  const badge        = document.getElementById('chat-badge');
+  const stepRegister = document.getElementById('step-register');
+  const stepMessage  = document.getElementById('step-message');
+  const regName      = document.getElementById('reg-name');
+  const regTg        = document.getElementById('reg-tg');
+  const regError     = document.getElementById('reg-error');
+  const regBtn       = document.getElementById('reg-submit');
+  const messagesEl   = document.getElementById('chat-messages');
+  const inputEl      = document.getElementById('chat-input');
+  const sendBtn      = document.getElementById('chat-send');
   let isOpen = false;
-  let messageSent = false;
+  let sending = false;
 
-  /* ── Toggle ─────────────────────────────────── */
   function openChat()  { isOpen = true;  win.classList.add('open');    badge.classList.remove('show'); }
   function closeChat() { isOpen = false; win.classList.remove('open'); }
   bubble.addEventListener('click', () => isOpen ? closeChat() : openChat());
   document.getElementById('chat-close').addEventListener('click', closeChat);
 
   function showStep(step) {
-    stepUsername.classList.remove('active');
+    stepRegister.classList.remove('active');
     stepMessage.classList.remove('active');
     step.classList.add('active');
   }
@@ -329,79 +320,84 @@
   function addMsg(text, type) {
     const m = document.createElement('div');
     m.className = `chat-msg ${type}`;
-    m.textContent = text;
+    if (type === 'maria') {
+      m.innerHTML = `<span class="maria-label">🌸 Maria</span><span>${escapeHtml(text)}</span>`;
+    } else {
+      m.textContent = text;
+    }
     messagesEl.appendChild(m);
     messagesEl.scrollTop = messagesEl.scrollHeight;
+    return m;
   }
 
-  /* ── Socket.IO ─────────────────────────────── */
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js';
-  script.onload = function () {
-    const socket = io();
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
 
-    /* username step */
-    function submitUsername() {
-      const val = usernameInput.value.trim();
-      if (!val || val === '@') {
-        usernameError.textContent = 'Please enter your Telegram username.';
-        return;
-      }
-      usernameError.textContent = '';
-      usernameBtn.textContent = '...';
-      usernameBtn.disabled = true;
-      socket.emit('submit_username', { username: val });
-    }
+  const socket = io();
 
-    usernameBtn.addEventListener('click', submitUsername);
-    usernameInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') submitUsername();
-    });
+  function submitRegister() {
+    const name = regName.value.trim();
+    const tg   = regTg.value.trim();
+    if (!name) { regError.textContent = 'Please enter your name.'; return; }
+    if (!tg || tg === '@') { regError.textContent = 'Please enter your Telegram username.'; return; }
+    regError.textContent = '';
+    regBtn.textContent = '...';
+    regBtn.disabled = true;
+    socket.emit('register_visitor', { name, tg });
+  }
 
-    socket.on('username_error', data => {
-      usernameError.textContent = data.text;
-      usernameBtn.textContent = 'Continue →';
-      usernameBtn.disabled = false;
-    });
+  regBtn.addEventListener('click', submitRegister);
+  regName.addEventListener('keydown', e => { if (e.key === 'Enter') regTg.focus(); });
+  regTg.addEventListener('keydown',  e => { if (e.key === 'Enter') submitRegister(); });
 
-    socket.on('username_accepted', data => {
+  socket.on('registered', data => {
+    showStep(stepMessage);
+    addMsg(`Hi ${data.name}! How can I help you?`, 'maria');
+  });
+
+  socket.on('error', data => {
+    regError.textContent = data.message;
+    regBtn.textContent = 'Start chatting →';
+    regBtn.disabled = false;
+  });
+
+  function sendMessage() {
+    if (sending) return;
+    const text = inputEl.value.trim();
+    if (!text) return;
+    addMsg(text, 'visitor');
+    socket.emit('visitor_message', { message: text });
+    inputEl.value = '';
+    sending = true;
+    inputEl.disabled = true;
+    sendBtn.disabled = true;
+    setTimeout(() => {
+      sending = false;
+      inputEl.disabled = false;
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }, 1000);
+  }
+
+  socket.on('new_message', data => {
+    if (data.sender === 'you') {
+      if (!isOpen) badge.classList.add('show');
       showStep(stepMessage);
-      addMsg(`Hi! I'm @${data.username.replace('@','')}. I'd like to ask you something.`, 'visitor');
-    });
-
-    /* message step */
-    function sendMessage() {
-      if (messageSent) return;
-      const text = inputEl.value.trim();
-      if (!text) return;
-      addMsg(text, 'visitor');
-      socket.emit('visitor_message', { text });
-      inputEl.value = '';
-      inputEl.disabled = true;
-      sendBtn.disabled = true;
+      addMsg(data.text, 'maria');
+      bubble.style.transform = 'scale(1.1)';
+      setTimeout(() => { bubble.style.transform = ''; }, 350);
     }
+  });
 
-    socket.on('message_sent', () => {
-      messageSent = true;
-      addMsg('✓ Message sent! Maria will reach out to you on Telegram soon.', 'success');
-      badge.classList.add('show');
-      // after a short delay allow sending more messages
-      setTimeout(() => {
-        messageSent = false;
-        inputEl.disabled = false;
-        sendBtn.disabled = false;
-        inputEl.focus();
-      }, 2000);
-    });
+  socket.on('chat_closed', data => {
+    addMsg(data.message || 'Chat closed.', 'system');
+    inputEl.disabled = true;
+    sendBtn.disabled = true;
+  });
 
-    socket.on('ask_username', () => {
-      showStep(stepUsername);
-    });
-
-    sendBtn.addEventListener('click', sendMessage);
-    inputEl.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    });
-  };
-  document.head.appendChild(script);
+  sendBtn.addEventListener('click', sendMessage);
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
 })();
