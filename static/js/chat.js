@@ -9,13 +9,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      background: #F7C0E5;
-      color: #5a1a45;
-      border: 1.5px solid #e8a0d0;
+      background: #fff;
+      color: #8a5070;
+      border: 1.5px solid #f0d8e8;
       border-radius: 40px;
       padding: 10px 18px 10px 14px;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(247,192,229,0.45);
+      box-shadow: 0 4px 20px rgba(200,112,154,0.12);
       font-family: 'DM Mono', monospace;
       font-size: 11px;
       letter-spacing: 0.08em;
@@ -24,7 +24,7 @@
     }
     #chat-bubble:hover {
       transform: translateY(-3px);
-      box-shadow: 0 8px 28px rgba(247,192,229,0.6);
+      box-shadow: 0 8px 28px rgba(200,112,154,0.2);
     }
     #chat-bubble .bubble-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
     #chat-badge {
@@ -33,10 +33,10 @@
       right: -6px;
       width: 14px;
       height: 14px;
-      background: #b8357a;
+      background: #c8709a;
       border-radius: 50%;
       display: none;
-      border: 2px solid #F7C0E5;
+      border: 2px solid #fff;
     }
     #chat-badge.show { display: block; }
     #chat-window {
@@ -45,12 +45,12 @@
       right: 28px;
       z-index: 9001;
       width: 320px;
-      background: #fdf0f8;
-      border: 1.5px solid #e8a0d0;
+      background: #fff;
+      border: 1.5px solid #f0d8e8;
       border-radius: 16px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 12px 48px rgba(184,53,122,0.18);
+      box-shadow: 0 12px 48px rgba(200,112,154,0.12);
       transform: scale(0.88) translateY(12px);
       transform-origin: bottom right;
       opacity: 0;
@@ -69,21 +69,21 @@
       align-items: center;
       gap: 10px;
       padding: 14px 16px 12px;
-      border-bottom: 1px solid #f0c8e4;
-      background: #F7C0E5;
+      border-bottom: 1px solid #f0d8e8;
+      background: #fdf8fb;
       flex-shrink: 0;
     }
     .ch-avatar {
       width: 32px; height: 32px;
       border-radius: 50%;
-      background: #b8357a;
+      background: #f0d8e8;
       display: flex; align-items: center; justify-content: center;
       font-size: 15px; flex-shrink: 0;
     }
     .ch-info { flex: 1; }
-    .ch-name { font-size: 12px; color: #5a1a45; letter-spacing: 0.06em; }
+    .ch-name { font-size: 12px; color: #2a1020; letter-spacing: 0.06em; }
     .ch-status {
-      font-size: 10px; color: #9a5080; letter-spacing: 0.04em;
+      font-size: 10px; color: #b898a8; letter-spacing: 0.04em;
       display: flex; align-items: center; gap: 4px;
     }
     .ch-status::before {
@@ -92,10 +92,10 @@
     }
     #chat-close {
       background: none; border: none; font-size: 18px;
-      color: #9a5080; cursor: pointer; padding: 2px 4px;
+      color: #b898a8; cursor: pointer; padding: 2px 4px;
       line-height: 1; transition: color 0.2s;
     }
-    #chat-close:hover { color: #5a1a45; }
+    #chat-close:hover { color: #2a1020; }
     .chat-step { display: none; flex-direction: column; flex: 1; }
     .chat-step.active { display: flex; }
     #step-register {
@@ -106,42 +106,42 @@
     }
     #step-register .step-intro {
       font-size: 12px;
-      color: #7a2258;
+      color: #8a5070;
       line-height: 1.6;
       letter-spacing: 0.04em;
     }
     #step-register .step-intro strong {
       display: block;
       font-size: 14px;
-      color: #5a1a45;
+      color: #2a1020;
       margin-bottom: 6px;
     }
     .reg-input {
       width: 100%;
-      border: 1.5px solid #e8a0d0;
+      border: 1.5px solid #f0d8e8;
       border-radius: 20px;
       padding: 9px 16px;
       font-family: 'DM Mono', monospace;
       font-size: 12px;
-      color: #4a1038;
+      color: #2a1020;
       background: #fff;
       outline: none;
       transition: border-color 0.2s;
       text-align: center;
       box-sizing: border-box;
     }
-    .reg-input::placeholder { color: #c090b0; }
-    .reg-input:focus { border-color: #b8357a; }
+    .reg-input::placeholder { color: #b898a8; }
+    .reg-input:focus { border-color: #c8709a; }
     #reg-error {
       font-size: 10px;
-      color: #b8357a;
+      color: #c8709a;
       letter-spacing: 0.06em;
       min-height: 14px;
     }
     #reg-submit {
       width: 100%;
       padding: 10px;
-      background: #b8357a;
+      background: #c8709a;
       color: #fff;
       border: none;
       border-radius: 20px;
@@ -152,7 +152,7 @@
       cursor: pointer;
       transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
     }
-    #reg-submit:hover { transform: translateY(-2px); background: #d04090; }
+    #reg-submit:hover { transform: translateY(-2px); background: #d888b0; }
     #reg-submit:active { transform: translateY(1px); }
     #step-message { flex-direction: column; }
     #chat-messages {
@@ -167,7 +167,7 @@
       scroll-behavior: smooth;
     }
     #chat-messages::-webkit-scrollbar { width: 3px; }
-    #chat-messages::-webkit-scrollbar-thumb { background: #e8a0d0; border-radius: 2px; }
+    #chat-messages::-webkit-scrollbar-thumb { background: #f0d8e8; border-radius: 2px; }
     .chat-msg {
       max-width: 85%;
       padding: 8px 12px;
@@ -182,30 +182,31 @@
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
     .chat-msg.visitor {
-      background: #F7C0E5;
-      color: #4a1038;
+      background: #fdf0f8;
+      color: #2a1020;
       align-self: flex-end;
       border-bottom-right-radius: 4px;
+      border: 1px solid #f0d8e8;
     }
     .chat-msg.maria {
       background: #fff;
-      color: #3a1030;
+      color: #2a1020;
       align-self: flex-start;
       border-bottom-left-radius: 4px;
-      border: 1.5px solid #f0c8e4;
+      border: 1.5px solid #f0d8e8;
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
     .chat-msg.maria .maria-label {
       font-size: 9px;
-      color: #b8357a;
+      color: #c8709a;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       margin-bottom: 2px;
     }
     .chat-msg.system {
-      background: transparent; color: #9a7090;
+      background: transparent; color: #b898a8;
       font-size: 10px; align-self: center;
       text-align: center; letter-spacing: 0.07em; padding: 2px 0;
     }
@@ -219,35 +220,35 @@
       display: flex;
       gap: 8px;
       padding: 10px 12px 12px;
-      border-top: 1px solid #f0c8e4;
+      border-top: 1px solid #f0d8e8;
       flex-shrink: 0;
     }
     #chat-input {
       flex: 1;
-      border: 1.5px solid #e8a0d0;
+      border: 1.5px solid #f0d8e8;
       border-radius: 20px;
       padding: 8px 14px;
       font-family: 'DM Mono', monospace;
       font-size: 12px;
-      color: #4a1038;
+      color: #2a1020;
       background: #fff;
       outline: none;
       transition: border-color 0.2s;
     }
-    #chat-input::placeholder { color: #c090b0; }
-    #chat-input:focus { border-color: #b8357a; }
+    #chat-input::placeholder { color: #b898a8; }
+    #chat-input:focus { border-color: #c8709a; }
     #chat-send {
       width: 34px; height: 34px;
       border-radius: 50%;
-      background: #b8357a;
+      background: #c8709a;
       border: none; color: #fff; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       font-size: 14px; flex-shrink: 0; align-self: flex-end;
       transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
     }
-    #chat-send:hover { transform: scale(1.12); background: #d04090; }
+    #chat-send:hover { transform: scale(1.12); background: #d888b0; }
     #chat-send:active { transform: scale(0.95); }
-    #chat-send:disabled { background: #e8a0d0; cursor: default; transform: none; }
+    #chat-send:disabled { background: #f0d8e8; cursor: default; transform: none; }
   `;
   document.head.appendChild(style);
 
@@ -274,17 +275,14 @@
     <div class="chat-step active" id="step-register">
       <div class="step-intro">
         <strong>Hey there! 👋</strong>
-        Enter your name and Telegram username so I can reply to you directly.
+        Enter your name to start chatting.
       </div>
       <input id="reg-name" class="reg-input" type="text" placeholder="Your name" maxlength="50" />
-      <input id="reg-tg" class="reg-input" type="text" placeholder="@yourusername" maxlength="32" />
       <div id="reg-error"></div>
       <button id="reg-submit">Start chatting →</button>
     </div>
     <div class="chat-step" id="step-message">
-      <div id="chat-messages">
-        <div class="chat-msg system">Say hello 👋</div>
-      </div>
+      <div id="chat-messages"></div>
       <div id="chat-input-row">
         <input id="chat-input" type="text" placeholder="Type a message…" maxlength="400" />
         <button id="chat-send">➤</button>
@@ -297,7 +295,6 @@
   const stepRegister = document.getElementById('step-register');
   const stepMessage  = document.getElementById('step-message');
   const regName      = document.getElementById('reg-name');
-  const regTg        = document.getElementById('reg-tg');
   const regError     = document.getElementById('reg-error');
   const regBtn       = document.getElementById('reg-submit');
   const messagesEl   = document.getElementById('chat-messages');
@@ -338,23 +335,21 @@
 
   function submitRegister() {
     const name = regName.value.trim();
-    const tg   = regTg.value.trim();
     if (!name) { regError.textContent = 'Please enter your name.'; return; }
-    if (!tg || tg === '@') { regError.textContent = 'Please enter your Telegram username.'; return; }
     regError.textContent = '';
     regBtn.textContent = '...';
     regBtn.disabled = true;
-    socket.emit('register_visitor', { name, tg });
+    socket.emit('register_visitor', { name, tg: 'unknown' });
   }
 
   regBtn.addEventListener('click', submitRegister);
-  regName.addEventListener('keydown', e => { if (e.key === 'Enter') regTg.focus(); });
-  regTg.addEventListener('keydown',  e => { if (e.key === 'Enter') submitRegister(); });
+  regName.addEventListener('keydown', e => { if (e.key === 'Enter') submitRegister(); });
 
-  socket.on('registered', data => {
+socket.on('registered', data => {
     showStep(stepMessage);
-    addMsg(`Hi ${data.name}! How can I help you?`, 'maria');
+    addMsg(`Hello, ${data.name}! How can I help you?`, 'maria');
   });
+
 
   socket.on('error', data => {
     regError.textContent = data.message;
