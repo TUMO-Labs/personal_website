@@ -1,98 +1,110 @@
-import eventlet
-eventlet.monkey_patch()
+import os
+import uuid
+import requests
+from flask import Flask, render_template, send_from_directory, request
+from flask_socketio import SocketIO, emit, join_room
+from dotenv import load_dotenv
 
-from datetime import datetime
-from flask import render_template, request
-from flask_socketio import emit, join_room
-from config import app, socketIO
-from models import Visitor, Message, db
-from bot import handle_inline_button, handle_text_message, tg_send, admin_currently_viewing
+load_dotenv()
 
-db.init_app(app)
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'maria-secret-key-change-in-prod')
 
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+# ── Telegram config ──────────────────────────────────────────────────────────
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
+TELEGRAM_CHAT_ID   = os.environ.get('TELEGRAM_CHAT_ID',   'YOUR_CHAT_ID_HERE')
+
+session_to_room = {}   # { visitor_sid: room_id }
+session_to_username = {}  # { visitor_sid: telegram_username }
+
+def send_telegram_notification(username: str, message: str):
+    """
+    Send Maria a Telegram notification with a direct link to the visitor's profile.
+    No webhook / ngrok needed — Maria just taps the link to open a private chat.
+    """
+    if TELEGRAM_BOT_TOKEN == 'YOUR_BOT_TOKEN_HERE':
+        print(f"[TELEGRAM STUB] @{username}: {message}")
+        return
+
+    # Clean up username — remove @ if they included it
+    clean = username.lstrip('@').strip()
+
+    text = (
+        f"💬 *New message on your website!*\n\n"
+        f"👤 Username: @{clean}\n"
+        f"✉️ Message: {message}\n\n"
+        f"👇 Tap to open chat with them:\n"
+        f"https://t.me/{clean}"
+    )
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": text,
+     #   "parse_mode": "Markdown",
+        "disable_web_page_preview": False,
+    }
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        print(f"[Telegram] sent notification for @{clean}: {r.status_code}")
+    except Exception as e:
+        print(f"[Telegram error] {e}")
+
+
+# ── Routes ───────────────────────────────────────────────────────────────────
 @app.route('/')
-def home():
+def index():
     return render_template('index.html')
 
-@app.route('/telegram/webhook', methods=['POST'])
-def telegram_webhook():
-    from flask import request as req
-    data = req.json
-    if 'callback_query' in data:
-        return handle_inline_button(data)
-    return handle_text_message(data)
+@app.route('/static/assets/<filename>')
+def serve_asset(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, 'static', 'assets'), filename
+    )
 
-@socketIO.on('connect')
+
+# ── Socket events ────────────────────────────────────────────────────────────
+@socketio.on('connect')
 def on_connect():
-    print(f'[CONNECT] {request.sid}')
+    room = str(uuid.uuid4())
+    session_to_room[request.sid] = room
+    join_room(room)
+    emit('connected', {'room': room})
 
-@socketIO.on('disconnect')
+@socketio.on('disconnect')
 def on_disconnect():
-    visitor = Visitor.query.filter_by(session_id=request.sid, is_closed=False).first()
-    if visitor:
-        visitor.is_closed = True
-        db.session.commit()
-        print(f'[disconnect] {visitor.tg_username} left')
+    session_to_room.pop(request.sid, None)
+    session_to_username.pop(request.sid, None)
 
-@socketIO.on('register_visitor')
-def on_register(data: dict):
-    name: str = data.get('name', '').strip()
-    tg: str = data.get('tg', '').strip()
-    if not name or not tg:
-        emit('error', {'message': 'Name and Telegram username are required.'})
+@socketio.on('submit_username')
+def on_submit_username(data):
+    """Visitor submitted their Telegram username."""
+    username = (data.get('username') or '').strip().lstrip('@')
+    if not username:
+        emit('username_error', {'text': 'Please enter a valid Telegram username.'})
         return
-    if not tg.startswith('@'):
-        tg = '@' + tg
-    if len(tg) <= 1:
-        emit('error', {'message': 'Please enter a valid Telegram username.'})
-        return
-    new_visitor = Visitor(
-        full_name=name,
-        tg_username=tg,
-        session_id=request.sid
-    )
-    db.session.add(new_visitor)
-    db.session.commit()
-    join_room(request.sid)
-    print(f'[register] {tg} ({name}) sid={request.sid}')
-    emit('registered', {'name': name, 'tg': tg})
-    tg_send(
-        f'<b>New visitor!</b>\n\n<b>{name}</b>\n{tg}\n\n<i>Tap below to open their chat.</i>',
-        reply_markup={'inline_keyboard': [[
-            {'text': f'💬 Chat with {name}', 'callback_data': f'open:{new_visitor.id}'},
-        ]]}
-    )
+    session_to_username[request.sid] = username
+    emit('username_accepted', {'username': username})
 
-@socketIO.on('visitor_message')
-def on_visitor_message(data: dict):
-    message: str = data.get('message', '').strip()
-    if not message:
-        return
-    visitor = Visitor.query.filter_by(session_id=request.sid).first()
-    if not visitor:
-        emit('error', {'message': 'Session not found. Please refresh and register again.'})
-        return
-    new_msg = Message(text=message, visitor_id=visitor.id, sender='visitor')
-    visitor.last_activity = datetime.utcnow()
-    db.session.add(new_msg)
-    db.session.commit()
-    visitor.unread_count += 1
-    db.session.commit()
-    currently_viewing = admin_currently_viewing(visitor.id)
-    if currently_viewing:
-        tg_send(f'<b>{visitor.full_name}:</b> {message}')
-    else:
-        tg_send(
-            f'<b>New message from {visitor.full_name}</b>\n\n'
-            f'{message}\n\n'
-            f'<i>{visitor.tg_username}</i>',
-            reply_markup={'inline_keyboard': [[
-                {'text': 'Open chat', 'callback_data': f'open:{visitor.id}'},
-                {'text': 'All chats', 'callback_data': 'chats'},
-            ]]}
-        )
+@socketio.on('visitor_message')
+def on_visitor_message(data):
+    """Visitor sent their message — forward to Telegram with their username."""
+    text = (data.get('text') or '').strip()
+    username = session_to_username.get(request.sid)
 
+    if not username:
+        emit('ask_username')
+        return
+    if not text:
+        return
+
+    print(f"[MSG] @{username}: {text}")
+    send_telegram_notification(username, text)
+    emit('message_sent')
+
+
+# ── Run ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    socketIO.run(app, host='0.0.0.0', port=5000, debug=False)
+    socketio.run(app, debug=True, port=5000)
