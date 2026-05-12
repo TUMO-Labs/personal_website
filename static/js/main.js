@@ -9,15 +9,21 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-// Blobs tuned to E67CBA / E394C2 / EBB9D4 palette — lighter, warmer
 const blobs = [
-  { x: 0.12, y: 0.18, r: 0.42, hue: 325, sat: 72, light: 55 },
-  { x: 0.80, y: 0.55, r: 0.35, hue: 310, sat: 62, light: 60 },
-  { x: 0.45, y: 0.88, r: 0.30, hue: 338, sat: 68, light: 58 },
-  { x: 0.90, y: 0.12, r: 0.25, hue: 300, sat: 58, light: 62 },
-  { x: 0.25, y: 0.70, r: 0.22, hue: 345, sat: 55, light: 65 },
-  { x: 0.60, y: 0.30, r: 0.18, hue: 318, sat: 65, light: 57 },
+  { x: 0.12, y: 0.18, r: 0.42, hue: 192, sat: 78, light: 85 },
+  { x: 0.80, y: 0.55, r: 0.35, hue: 188, sat: 72, light: 82 },
+  { x: 0.45, y: 0.88, r: 0.30, hue: 195, sat: 76, light: 84 },
+  { x: 0.90, y: 0.12, r: 0.25, hue: 190, sat: 70, light: 86 },
+  { x: 0.25, y: 0.70, r: 0.22, hue: 194, sat: 68, light: 83 },
+  { x: 0.60, y: 0.30, r: 0.18, hue: 186, sat: 74, light: 80 },
 ];
+
+
+
+
+
+
+
 
 let t = 0;
 

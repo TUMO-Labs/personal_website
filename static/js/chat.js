@@ -10,12 +10,12 @@
       align-items: center;
       gap: 10px;
       background: #fff;
-      color: #8a5070;
-      border: 1.5px solid #f0d8e8;
+      color: #1e3a5f;
+      border: 1.5px solid #bfd4ef;
       border-radius: 40px;
       padding: 10px 18px 10px 14px;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(200,112,154,0.12);
+      box-shadow: 0 4px 20px rgba(59,130,246,0.12);
       font-family: 'DM Mono', monospace;
       font-size: 11px;
       letter-spacing: 0.08em;
@@ -24,7 +24,7 @@
     }
     #chat-bubble:hover {
       transform: translateY(-3px);
-      box-shadow: 0 8px 28px rgba(200,112,154,0.2);
+      box-shadow: 0 8px 28px rgba(59,130,246,0.2);
     }
     #chat-bubble .bubble-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
     #chat-badge {
@@ -33,7 +33,7 @@
       right: -6px;
       width: 14px;
       height: 14px;
-      background: #c8709a;
+      background: #3b82f6;
       border-radius: 50%;
       display: none;
       border: 2px solid #fff;
@@ -46,11 +46,11 @@
       z-index: 9001;
       width: 320px;
       background: #fff;
-      border: 1.5px solid #f0d8e8;
+      border: 1.5px solid #bfd4ef;
       border-radius: 16px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 12px 48px rgba(200,112,154,0.12);
+      box-shadow: 0 12px 48px rgba(59,130,246,0.12);
       transform: scale(0.88) translateY(12px);
       transform-origin: bottom right;
       opacity: 0;
@@ -69,21 +69,21 @@
       align-items: center;
       gap: 10px;
       padding: 14px 16px 12px;
-      border-bottom: 1px solid #f0d8e8;
-      background: #fdf8fb;
+      border-bottom: 1px solid #bfd4ef;
+      background: #f0f6ff;
       flex-shrink: 0;
     }
     .ch-avatar {
       width: 32px; height: 32px;
       border-radius: 50%;
-      background: #f0d8e8;
+      background: #bfd4ef;
       display: flex; align-items: center; justify-content: center;
       font-size: 15px; flex-shrink: 0;
     }
     .ch-info { flex: 1; }
-    .ch-name { font-size: 12px; color: #2a1020; letter-spacing: 0.06em; }
+    .ch-name { font-size: 12px; color: #1e3a5f; letter-spacing: 0.06em; }
     .ch-status {
-      font-size: 10px; color: #b898a8; letter-spacing: 0.04em;
+      font-size: 10px; color: #4f6f96; letter-spacing: 0.04em;
       display: flex; align-items: center; gap: 4px;
     }
     .ch-status::before {
@@ -92,10 +92,10 @@
     }
     #chat-close {
       background: none; border: none; font-size: 18px;
-      color: #b898a8; cursor: pointer; padding: 2px 4px;
+      color: #4f6f96; cursor: pointer; padding: 2px 4px;
       line-height: 1; transition: color 0.2s;
     }
-    #chat-close:hover { color: #2a1020; }
+    #chat-close:hover { color: #1e3a5f; }
     .chat-step { display: none; flex-direction: column; flex: 1; }
     .chat-step.active { display: flex; }
     #step-register {
@@ -106,42 +106,42 @@
     }
     #step-register .step-intro {
       font-size: 12px;
-      color: #8a5070;
+      color: #2d5a8e;
       line-height: 1.6;
       letter-spacing: 0.04em;
     }
     #step-register .step-intro strong {
       display: block;
       font-size: 14px;
-      color: #2a1020;
+      color: #1e3a5f;
       margin-bottom: 6px;
     }
     .reg-input {
       width: 100%;
-      border: 1.5px solid #f0d8e8;
+      border: 1.5px solid #bfd4ef;
       border-radius: 20px;
       padding: 9px 16px;
       font-family: 'DM Mono', monospace;
       font-size: 12px;
-      color: #2a1020;
+      color: #1e3a5f;
       background: #fff;
       outline: none;
       transition: border-color 0.2s;
       text-align: center;
       box-sizing: border-box;
     }
-    .reg-input::placeholder { color: #b898a8; }
-    .reg-input:focus { border-color: #c8709a; }
+    .reg-input::placeholder { color: #8ca3bd; }
+    .reg-input:focus { border-color: #3b82f6; }
     #reg-error {
       font-size: 10px;
-      color: #c8709a;
+      color: #3b82f6;
       letter-spacing: 0.06em;
       min-height: 14px;
     }
     #reg-submit {
       width: 100%;
       padding: 10px;
-      background: #c8709a;
+      background: #3b82f6;
       color: #fff;
       border: none;
       border-radius: 20px;
@@ -152,7 +152,7 @@
       cursor: pointer;
       transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
     }
-    #reg-submit:hover { transform: translateY(-2px); background: #d888b0; }
+    #reg-submit:hover { transform: translateY(-2px); background: #2563eb; }
     #reg-submit:active { transform: translateY(1px); }
     #step-message { flex-direction: column; }
     #chat-messages {
@@ -167,7 +167,7 @@
       scroll-behavior: smooth;
     }
     #chat-messages::-webkit-scrollbar { width: 3px; }
-    #chat-messages::-webkit-scrollbar-thumb { background: #f0d8e8; border-radius: 2px; }
+    #chat-messages::-webkit-scrollbar-thumb { background: #bfd4ef; border-radius: 2px; }
     .chat-msg {
       max-width: 85%;
       padding: 8px 12px;
@@ -182,31 +182,31 @@
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
     .chat-msg.visitor {
-      background: #fdf0f8;
-      color: #2a1020;
+      background: #eff6ff;
+      color: #1e3a5f;
       align-self: flex-end;
       border-bottom-right-radius: 4px;
-      border: 1px solid #f0d8e8;
+      border: 1px solid #bfd4ef;
     }
     .chat-msg.maria {
       background: #fff;
-      color: #2a1020;
+      color: #1e3a5f;
       align-self: flex-start;
       border-bottom-left-radius: 4px;
-      border: 1.5px solid #f0d8e8;
+      border: 1.5px solid #bfd4ef;
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
     .chat-msg.maria .maria-label {
       font-size: 9px;
-      color: #c8709a;
+      color: #3b82f6;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       margin-bottom: 2px;
     }
     .chat-msg.system {
-      background: transparent; color: #b898a8;
+      background: transparent; color: #8ca3bd;
       font-size: 10px; align-self: center;
       text-align: center; letter-spacing: 0.07em; padding: 2px 0;
     }
@@ -220,35 +220,35 @@
       display: flex;
       gap: 8px;
       padding: 10px 12px 12px;
-      border-top: 1px solid #f0d8e8;
+      border-top: 1px solid #bfd4ef;
       flex-shrink: 0;
     }
     #chat-input {
       flex: 1;
-      border: 1.5px solid #f0d8e8;
+      border: 1.5px solid #bfd4ef;
       border-radius: 20px;
       padding: 8px 14px;
       font-family: 'DM Mono', monospace;
       font-size: 12px;
-      color: #2a1020;
+      color: #1e3a5f;
       background: #fff;
       outline: none;
       transition: border-color 0.2s;
     }
-    #chat-input::placeholder { color: #b898a8; }
-    #chat-input:focus { border-color: #c8709a; }
+    #chat-input::placeholder { color: #8ca3bd; }
+    #chat-input:focus { border-color: #3b82f6; }
     #chat-send {
       width: 34px; height: 34px;
       border-radius: 50%;
-      background: #c8709a;
+      background: #3b82f6;
       border: none; color: #fff; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       font-size: 14px; flex-shrink: 0; align-self: flex-end;
       transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
     }
-    #chat-send:hover { transform: scale(1.12); background: #d888b0; }
+    #chat-send:hover { transform: scale(1.12); background: #2563eb; }
     #chat-send:active { transform: scale(0.95); }
-    #chat-send:disabled { background: #f0d8e8; cursor: default; transform: none; }
+    #chat-send:disabled { background: #bfd4ef; cursor: default; transform: none; }
   `;
   document.head.appendChild(style);
 
@@ -265,7 +265,7 @@
   win.id = 'chat-window';
   win.innerHTML = `
     <div id="chat-header">
-      <div class="ch-avatar">🌸</div>
+      <div class="ch-avatar">💙</div>
       <div class="ch-info">
         <div class="ch-name">Maria Aslanyan</div>
         <div class="ch-status">Usually replies soon</div>
@@ -318,7 +318,7 @@
     const m = document.createElement('div');
     m.className = `chat-msg ${type}`;
     if (type === 'maria') {
-      m.innerHTML = `<span class="maria-label">🌸 Maria</span><span>${escapeHtml(text)}</span>`;
+      m.innerHTML = `<span class="maria-label">💙 Maria</span><span>${escapeHtml(text)}</span>`;
     } else {
       m.textContent = text;
     }
@@ -345,11 +345,10 @@
   regBtn.addEventListener('click', submitRegister);
   regName.addEventListener('keydown', e => { if (e.key === 'Enter') submitRegister(); });
 
-socket.on('registered', data => {
+  socket.on('registered', data => {
     showStep(stepMessage);
     addMsg(`Hello, ${data.name}! How can I help you?`, 'maria');
   });
-
 
   socket.on('error', data => {
     regError.textContent = data.message;
