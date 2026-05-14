@@ -265,7 +265,7 @@
   win.id = 'chat-window';
   win.innerHTML = `
     <div id="chat-header">
-      <div class="ch-avatar">💙</div>
+      <div class="ch-avatar"></div>
       <div class="ch-info">
         <div class="ch-name">Maria Aslanyan</div>
         <div class="ch-status">Usually replies soon</div>
@@ -318,7 +318,7 @@
     const m = document.createElement('div');
     m.className = `chat-msg ${type}`;
     if (type === 'maria') {
-      m.innerHTML = `<span class="maria-label">💙 Maria</span><span>${escapeHtml(text)}</span>`;
+      m.innerHTML = `<span class="maria-label"> Maria</span><span>${escapeHtml(text)}</span>`;
     } else {
       m.textContent = text;
     }
