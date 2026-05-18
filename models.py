@@ -13,6 +13,7 @@ class Visitor(db.Model):
     last_activity = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     is_closed = db.Column(db.Boolean, default=False, nullable=False)
     unread_count = db.Column(db.Integer, default=0, nullable=False)
+    tg_thread_id = db.Column(db.Integer, nullable=True)
     messages = db.relationship(
         'Message',
         foreign_keys="Message.visitor_id",

@@ -43,7 +43,7 @@ def tg_post(method: str, payload: dict):
         return {}
 
 
-def tg_send(text: str, reply_markup: dict = None):
+def tg_send(text: str, reply_markup: dict = None, thread_id: int = None):
     payload = {
         'chat_id': TG_CHAT_ID,
         'text': text,
@@ -51,7 +51,19 @@ def tg_send(text: str, reply_markup: dict = None):
     }
     if reply_markup:
         payload['reply_markup'] = reply_markup
+    if thread_id:
+        payload['message_thread_id'] = thread_id
     return tg_post('sendMessage', payload)
+
+
+def tg_create_topic(name: str) -> int:
+    """Creates a new forum topic for a visitor, returns the thread id."""
+    result = tg_post('createForumTopic', {
+        'chat_id': TG_CHAT_ID,
+        'name': name[:128],
+    })
+    return result.get('result', {}).get('message_thread_id')
+
 
 
 def tg_edit(message_id: int, text: str, reply_markup: dict = None):
@@ -256,7 +268,7 @@ def handle_text_message(data: dict):
         'created_at': reply.created_at.isoformat(),
     }, room=visitor.session_id)
 
-    tg_send(f'✓ <i>Sent to {visitor.full_name}</i>')
+    tg_send(f'✓ <i>Sent to {visitor.full_name}</i>', thread_id=visitor.tg_thread_id)
     return 'ok', 200
 
 
