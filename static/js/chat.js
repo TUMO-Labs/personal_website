@@ -80,7 +80,7 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 15px; flex-shrink: 0;
     }
-    .ch-info { flex: 1; }
+    .ch-info { flex: 1; min-width: 0; }
     .ch-name { font-size: 12px; color: #1e3a5f; letter-spacing: 0.06em; }
     .ch-status {
       font-size: 10px; color: #4f6f96; letter-spacing: 0.04em;
@@ -90,10 +90,27 @@
       content: ''; width: 6px; height: 6px;
       border-radius: 50%; background: #4caf82; display: inline-block;
     }
+    #chat-switch {
+      display: none;
+      background: #eff6ff;
+      border: 1.5px solid #bfd4ef;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: #3b82f6;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    #chat-switch:hover { background: #dbeafe; border-color: #3b82f6; }
+    #chat-switch.visible { display: block; }
     #chat-close {
       background: none; border: none; font-size: 18px;
       color: #4f6f96; cursor: pointer; padding: 2px 4px;
-      line-height: 1; transition: color 0.2s;
+      line-height: 1; transition: color 0.2s; flex-shrink: 0;
     }
     #chat-close:hover { color: #1e3a5f; }
     .chat-step { display: none; flex-direction: column; flex: 1; }
@@ -316,6 +333,7 @@
         <div class="ch-name">Maria Aslanyan</div>
         <div class="ch-status">Usually replies soon</div>
       </div>
+      <button id="chat-switch" title="Switch chat mode"></button>
       <button id="chat-close" title="Close">×</button>
     </div>
     <div class="chat-step active" id="step-register">
@@ -360,8 +378,10 @@
   const messagesEl   = document.getElementById('chat-messages');
   const inputEl      = document.getElementById('chat-input');
   const sendBtn      = document.getElementById('chat-send');
-  let isOpen  = false;
-  let sending = false;
+  const switchBtn    = document.getElementById('chat-switch');
+  let isOpen   = false;
+  let sending  = false;
+  let currentMode = null;  // 'ai' | 'human'
 
   function openChat()  { isOpen = true;  win.classList.add('open');    badge.classList.remove('show'); }
   function closeChat() { isOpen = false; win.classList.remove('open'); }
@@ -371,6 +391,15 @@
   function showStep(step) {
     [stepRegister, stepMode, stepMessage].forEach(s => s.classList.remove('active'));
     step.classList.add('active');
+  }
+
+  function updateSwitchBtn(mode) {
+    if (mode === 'ai') {
+      switchBtn.textContent = '👤 Switch to Maria';
+    } else {
+      switchBtn.textContent = '🤖 Switch to AI';
+    }
+    switchBtn.classList.add('visible');
   }
 
   function addMsg(text, type) {
@@ -418,22 +447,29 @@
     regBtn.disabled = false;
   });
 
-  // ── Mode selection step ────────────────────────────────────────────────────
+  // ── Mode selection ─────────────────────────────────────────────────────────
 
-  document.getElementById('mode-ai').addEventListener('click', () => {
-    socket.emit('select_mode', { mode: 'ai' });
-  });
+  function selectMode(mode) {
+    socket.emit('select_mode', { mode });
+  }
 
-  document.getElementById('mode-human').addEventListener('click', () => {
-    socket.emit('select_mode', { mode: 'human' });
+  document.getElementById('mode-ai').addEventListener('click', () => selectMode('ai'));
+  document.getElementById('mode-human').addEventListener('click', () => selectMode('human'));
+
+  // Switch button in header — toggles to the other mode
+  switchBtn.addEventListener('click', () => {
+    const newMode = currentMode === 'ai' ? 'human' : 'ai';
+    selectMode(newMode);
   });
 
   socket.on('mode_selected', data => {
+    currentMode = data.mode;
+    updateSwitchBtn(data.mode);
     showStep(stepMessage);
     if (data.mode === 'ai') {
-      addMsg("Hi! I'm Maria's AI assistant. Ask me anything about her background, skills, or projects.", 'maria');
+      addMsg("Switched to AI assistant. Ask me anything about Maria!", 'system');
     } else {
-      addMsg("Hey! Maria will get back to you soon. Leave your message below 👇", 'maria');
+      addMsg("Switched to personal chat. Maria will reply when available.", 'system');
     }
   });
 
@@ -478,3 +514,4 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
 })();
+

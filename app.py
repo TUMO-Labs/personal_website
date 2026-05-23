@@ -5,7 +5,7 @@ import os
 import uuid
 import requests
 import gevent
-from google import genai
+from openai import OpenAI
 from flask import Flask, render_template, send_from_directory, request
 from flask_socketio import SocketIO, emit, join_room
 from dotenv import load_dotenv
@@ -26,7 +26,7 @@ session_to_room     = {}  # { sid: room_id }
 session_to_username = {}  # { sid: name }
 session_to_thread   = {}  # { sid: tg_thread_id }
 session_to_mode     = {}  # { sid: 'ai' | 'human' }
-ai_histories        = {}  # { sid: [ {role, parts}, ... ] }
+ai_histories        = {}  # { sid: [ {role, content}, ... ] }
 
 
 # ── Telegram helpers ──────────────────────────────────────────────────────────
@@ -149,32 +149,20 @@ def _handle_human_message(sid, username, text):
 def _handle_ai_message(sid, username, text):
     def _call():
         history = ai_histories.setdefault(sid, [])
-
-        # Build contents list from history + new message
-        contents = []
-        for entry in history:
-            contents.append({
-                "role": entry["role"],
-                "parts": [{"text": entry["parts"][0]}]
-            })
-        contents.append({
-            "role": "user",
-            "parts": [{"text": text}]
-        })
+        history.append({"role": "user", "content": text})
 
         try:
-            client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY', ''))
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=contents,
-                config={
-                    "system_instruction": SYSTEM_PROMPT,
-                    "max_output_tokens": 500,
-                }
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=os.environ.get('OPENROUTER_API_KEY', ''),
             )
-            reply = response.text
-            history.append({"role": "user",  "parts": [text]})
-            history.append({"role": "model", "parts": [reply]})
+            response = client.chat.completions.create(
+                model="mistralai/mistral-7b-instruct:free",
+                messages=[{"role": "system", "content": SYSTEM_PROMPT}] + history,
+                max_tokens=500,
+            )
+            reply = response.choices[0].message.content
+            history.append({"role": "assistant", "content": reply})
 
         except Exception as e:
             print(f'[AI] Error: {e}')
