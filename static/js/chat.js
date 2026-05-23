@@ -154,6 +154,52 @@
     }
     #reg-submit:hover { transform: translateY(-2px); background: #2563eb; }
     #reg-submit:active { transform: translateY(1px); }
+    #step-mode {
+      padding: 24px 20px;
+      gap: 12px;
+      align-items: center;
+      text-align: center;
+    }
+    #step-mode .mode-intro {
+      font-size: 13px;
+      color: #1e3a5f;
+      letter-spacing: 0.04em;
+      line-height: 1.6;
+    }
+    #step-mode .mode-intro strong {
+      display: block;
+      font-size: 14px;
+      color: #1e3a5f;
+      margin-bottom: 8px;
+    }
+    .mode-btn {
+      width: 100%;
+      padding: 12px 16px;
+      background: #fff;
+      border: 1.5px solid #bfd4ef;
+      border-radius: 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: #1e3a5f;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .mode-btn:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 4px 14px rgba(59,130,246,0.12);
+      transform: translateY(-2px);
+    }
+    .mode-btn small {
+      display: block;
+      font-size: 10px;
+      color: #8ca3bd;
+      letter-spacing: 0.06em;
+    }
     #step-message { flex-direction: column; }
     #chat-messages {
       flex: 1;
@@ -281,6 +327,19 @@
       <div id="reg-error"></div>
       <button id="reg-submit">Start chatting →</button>
     </div>
+    <div class="chat-step" id="step-mode">
+      <div class="mode-intro">
+        <strong>How would you like to chat?</strong>
+      </div>
+      <button class="mode-btn" id="mode-ai">
+        🤖 AI Assistant
+        <small>Instant answers about Maria</small>
+      </button>
+      <button class="mode-btn" id="mode-human">
+        👤 Maria personally
+        <small>She'll reply when available</small>
+      </button>
+    </div>
     <div class="chat-step" id="step-message">
       <div id="chat-messages"></div>
       <div id="chat-input-row">
@@ -293,6 +352,7 @@
 
   const badge        = document.getElementById('chat-badge');
   const stepRegister = document.getElementById('step-register');
+  const stepMode     = document.getElementById('step-mode');
   const stepMessage  = document.getElementById('step-message');
   const regName      = document.getElementById('reg-name');
   const regError     = document.getElementById('reg-error');
@@ -300,7 +360,7 @@
   const messagesEl   = document.getElementById('chat-messages');
   const inputEl      = document.getElementById('chat-input');
   const sendBtn      = document.getElementById('chat-send');
-  let isOpen = false;
+  let isOpen  = false;
   let sending = false;
 
   function openChat()  { isOpen = true;  win.classList.add('open');    badge.classList.remove('show'); }
@@ -309,8 +369,7 @@
   document.getElementById('chat-close').addEventListener('click', closeChat);
 
   function showStep(step) {
-    stepRegister.classList.remove('active');
-    stepMessage.classList.remove('active');
+    [stepRegister, stepMode, stepMessage].forEach(s => s.classList.remove('active'));
     step.classList.add('active');
   }
 
@@ -318,7 +377,7 @@
     const m = document.createElement('div');
     m.className = `chat-msg ${type}`;
     if (type === 'maria') {
-      m.innerHTML = `<span class="maria-label"> Maria</span><span>${escapeHtml(text)}</span>`;
+      m.innerHTML = `<span class="maria-label">Maria</span><span>${escapeHtml(text)}</span>`;
     } else {
       m.textContent = text;
     }
@@ -333,21 +392,24 @@
 
   const socket = io();
 
+  // ── Register step ──────────────────────────────────────────────────────────
+
   function submitRegister() {
     const name = regName.value.trim();
     if (!name) { regError.textContent = 'Please enter your name.'; return; }
     regError.textContent = '';
     regBtn.textContent = '...';
     regBtn.disabled = true;
-    socket.emit('register_visitor', { name, tg: 'unknown' });
+    socket.emit('register_visitor', { name });
   }
 
   regBtn.addEventListener('click', submitRegister);
   regName.addEventListener('keydown', e => { if (e.key === 'Enter') submitRegister(); });
 
-  socket.on('registered', data => {
-    showStep(stepMessage);
-    addMsg(`Hello, ${data.name}! How can I help you?`, 'maria');
+  socket.on('registered', () => {
+    showStep(stepMode);
+    regBtn.textContent = 'Start chatting →';
+    regBtn.disabled = false;
   });
 
   socket.on('error', data => {
@@ -355,6 +417,27 @@
     regBtn.textContent = 'Start chatting →';
     regBtn.disabled = false;
   });
+
+  // ── Mode selection step ────────────────────────────────────────────────────
+
+  document.getElementById('mode-ai').addEventListener('click', () => {
+    socket.emit('select_mode', { mode: 'ai' });
+  });
+
+  document.getElementById('mode-human').addEventListener('click', () => {
+    socket.emit('select_mode', { mode: 'human' });
+  });
+
+  socket.on('mode_selected', data => {
+    showStep(stepMessage);
+    if (data.mode === 'ai') {
+      addMsg("Hi! I'm Maria's AI assistant. Ask me anything about her background, skills, or projects.", 'maria');
+    } else {
+      addMsg("Hey! Maria will get back to you soon. Leave your message below 👇", 'maria');
+    }
+  });
+
+  // ── Message step ───────────────────────────────────────────────────────────
 
   function sendMessage() {
     if (sending) return;
@@ -375,7 +458,7 @@
   }
 
   socket.on('new_message', data => {
-    if (data.sender === 'you') {
+    if (data.sender === 'you' || data.sender === 'ai') {
       if (!isOpen) badge.classList.add('show');
       showStep(stepMessage);
       addMsg(data.text, 'maria');

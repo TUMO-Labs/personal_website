@@ -1,16 +1,22 @@
+import gevent.monkey
+gevent.monkey.patch_all()
+
 import os
 import uuid
 import requests
+import gevent
+from google import genai
 from flask import Flask, render_template, send_from_directory, request
 from flask_socketio import SocketIO, emit, join_room
 from dotenv import load_dotenv
+from ai_profile import SYSTEM_PROMPT
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'maria-secret-key-change-in-prod')
 
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 TELEGRAM_CHAT_ID   = os.environ.get('TELEGRAM_CHAT_ID', '')
@@ -19,7 +25,11 @@ TG_API = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}'
 session_to_room     = {}  # { sid: room_id }
 session_to_username = {}  # { sid: name }
 session_to_thread   = {}  # { sid: tg_thread_id }
+session_to_mode     = {}  # { sid: 'ai' | 'human' }
+ai_histories        = {}  # { sid: [ {role, parts}, ... ] }
 
+
+# ── Telegram helpers ──────────────────────────────────────────────────────────
 
 def tg_post(method: str, payload: dict):
     try:
@@ -31,7 +41,6 @@ def tg_post(method: str, payload: dict):
 
 
 def tg_create_topic(name: str) -> int:
-    """Create a new forum topic in the supergroup, return its thread_id."""
     result = tg_post('createForumTopic', {
         'chat_id': TELEGRAM_CHAT_ID,
         'name': name[:128],
@@ -51,7 +60,8 @@ def tg_send(text: str, thread_id: int = None):
     tg_post('sendMessage', payload)
 
 
-# ── Routes ───────────────────────────────────────────────────────────────────
+# ── Routes ────────────────────────────────────────────────────────────────────
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -63,7 +73,8 @@ def serve_asset(filename):
     )
 
 
-# ── Socket events ────────────────────────────────────────────────────────────
+# ── Socket events ─────────────────────────────────────────────────────────────
+
 @socketio.on('connect')
 def on_connect():
     room = str(uuid.uuid4())
@@ -71,11 +82,15 @@ def on_connect():
     join_room(room)
     emit('connected', {'room': room})
 
+
 @socketio.on('disconnect')
 def on_disconnect():
     session_to_room.pop(request.sid, None)
     session_to_username.pop(request.sid, None)
     session_to_thread.pop(request.sid, None)
+    session_to_mode.pop(request.sid, None)
+    ai_histories.pop(request.sid, None)
+
 
 @socketio.on('register_visitor')
 def on_register_visitor(data):
@@ -85,6 +100,16 @@ def on_register_visitor(data):
         return
     session_to_username[request.sid] = name
     emit('registered', {'name': name})
+
+
+@socketio.on('select_mode')
+def on_select_mode(data):
+    mode = data.get('mode')
+    if mode not in ('ai', 'human'):
+        return
+    session_to_mode[request.sid] = mode
+    emit('mode_selected', {'mode': mode})
+
 
 @socketio.on('visitor_message')
 def on_visitor_message(data):
@@ -97,21 +122,75 @@ def on_visitor_message(data):
     if not text:
         return
 
-    # Create a topic for this visitor if they don't have one yet
-    thread_id = session_to_thread.get(request.sid)
+    mode = session_to_mode.get(request.sid, 'human')
+
+    if mode == 'ai':
+        _handle_ai_message(request.sid, username, text)
+    else:
+        _handle_human_message(request.sid, username, text)
+
+
+# ── Message handlers ──────────────────────────────────────────────────────────
+
+def _handle_human_message(sid, username, text):
+    thread_id = session_to_thread.get(sid)
     if not thread_id:
         thread_id = tg_create_topic(username[:128])
         if thread_id:
-            session_to_thread[request.sid] = thread_id
+            session_to_thread[sid] = thread_id
             tg_send(
                 f'👤 <b>{username}</b> started a conversation',
                 thread_id=thread_id
             )
-
     tg_send(f'<b>{username}:</b> {text}', thread_id=thread_id)
     print(f'[MSG] {username} (thread {thread_id}): {text}')
 
 
-# ── Run ──────────────────────────────────────────────────────────────────────
+def _handle_ai_message(sid, username, text):
+    def _call():
+        history = ai_histories.setdefault(sid, [])
+
+        # Build contents list from history + new message
+        contents = []
+        for entry in history:
+            contents.append({
+                "role": entry["role"],
+                "parts": [{"text": entry["parts"][0]}]
+            })
+        contents.append({
+            "role": "user",
+            "parts": [{"text": text}]
+        })
+
+        try:
+            client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY', ''))
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=contents,
+                config={
+                    "system_instruction": SYSTEM_PROMPT,
+                    "max_output_tokens": 500,
+                }
+            )
+            reply = response.text
+            history.append({"role": "user",  "parts": [text]})
+            history.append({"role": "model", "parts": [reply]})
+
+        except Exception as e:
+            print(f'[AI] Error: {e}')
+            reply = "Sorry, I'm having a little trouble right now. Try again in a moment!"
+
+        room = session_to_room.get(sid)
+        if room:
+            socketio.emit('new_message', {
+                'sender': 'ai',
+                'text': reply,
+            }, room=room)
+
+    gevent.spawn(_call)
+
+
+# ── Run ───────────────────────────────────────────────────────────────────────
+
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=5000)

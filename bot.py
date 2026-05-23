@@ -5,8 +5,7 @@ import requests
 from dotenv import load_dotenv
 
 from models import Visitor, Message, db
-from config import socketIO
-
+from app import socketio as socketIO
 load_dotenv()
 
 TG_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
