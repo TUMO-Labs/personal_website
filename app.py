@@ -1,6 +1,6 @@
 import gevent.monkey
 gevent.monkey.patch_all()
-
+import logging
 import os
 import uuid
 import requests
@@ -157,17 +157,16 @@ def _handle_ai_message(sid, username, text):
                 api_key=os.environ.get('OPENROUTER_API_KEY', ''),
             )
             response = client.chat.completions.create(
-                model="mistralai/mistral-7b-instruct:free",
+                model="openrouter/free",  # Let OpenRouter dynamically pick a working free model
                 messages=[{"role": "system", "content": SYSTEM_PROMPT}] + history,
                 max_tokens=500,
-            )
+            )           
             reply = response.choices[0].message.content
             history.append({"role": "assistant", "content": reply})
 
         except Exception as e:
-            print(f'[AI] Error: {e}')
-            reply = "Sorry, I'm having a little trouble right now. Try again in a moment!"
-
+            logging.exception("AI Processing failed") 
+            reply = "Sorry, I'm having a little trouble right now."
         room = session_to_room.get(sid)
         if room:
             socketio.emit('new_message', {
@@ -182,3 +181,4 @@ def _handle_ai_message(sid, username, text):
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=5000)
+
