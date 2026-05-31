@@ -281,10 +281,11 @@
     }
     #chat-input-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       padding: 10px 12px 12px;
       border-top: 1px solid #bfd4ef;
       flex-shrink: 0;
+      align-items: flex-end;
     }
     #chat-input {
       flex: 1;
@@ -306,12 +307,61 @@
       background: #3b82f6;
       border: none; color: #fff; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px; flex-shrink: 0; align-self: flex-end;
+      font-size: 14px; flex-shrink: 0;
       transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
     }
     #chat-send:hover { transform: scale(1.12); background: #2563eb; }
     #chat-send:active { transform: scale(0.95); }
     #chat-send:disabled { background: #bfd4ef; cursor: default; transform: none; }
+
+    /* ── Voice mic button (AI mode only) ── */
+    #chat-mic {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1.5px solid #bfd4ef;
+      color: #4f6f96;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+    #chat-mic.ai-mode { display: flex; }
+    #chat-mic:hover { background: #eff6ff; border-color: #3b82f6; color: #3b82f6; }
+    #chat-mic.listening {
+      background: #fee2e2;
+      border-color: #f87171;
+      color: #ef4444;
+      animation: pulse-mic 1s infinite;
+    }
+    #chat-mic:disabled { opacity: 0.45; cursor: default; transform: none !important; }
+    @keyframes pulse-mic {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.14); }
+    }
+
+    /* ── Mute TTS button ── */
+    #chat-mute {
+      background: none;
+      border: none;
+      font-size: 15px;
+      color: #4f6f96;
+      cursor: pointer;
+      padding: 2px 4px;
+      line-height: 1;
+      transition: color 0.2s, opacity 0.2s;
+      flex-shrink: 0;
+      display: none;
+    }
+    #chat-mute.ai-mode { display: block; }
+    #chat-mute.muted { opacity: 0.4; }
+    #chat-mute:hover { color: #1e3a5f; }
+
+    /* small "speaking" indicator on the AI label */
+    .maria-label.speaking::after { content: ' 🔊'; }
   `;
   document.head.appendChild(style);
 
@@ -334,6 +384,7 @@
         <div class="ch-status">Usually replies soon</div>
       </div>
       <button id="chat-switch" title="Switch chat mode"></button>
+      <button id="chat-mute" title="Mute AI voice">🔊</button>
       <button id="chat-close" title="Close">×</button>
     </div>
     <div class="chat-step active" id="step-register">
@@ -362,6 +413,7 @@
       <div id="chat-messages"></div>
       <div id="chat-input-row">
         <input id="chat-input" type="text" placeholder="Type a message…" maxlength="400" />
+        <button id="chat-mic" title="Click to speak" aria-label="Voice input">🎙️</button>
         <button id="chat-send">➤</button>
       </div>
     </div>
@@ -379,12 +431,124 @@
   const inputEl      = document.getElementById('chat-input');
   const sendBtn      = document.getElementById('chat-send');
   const switchBtn    = document.getElementById('chat-switch');
-  let isOpen   = false;
-  let sending  = false;
-  let currentMode = null;  // 'ai' | 'human'
+  const muteBtn      = document.getElementById('chat-mute');
+  const micBtn       = document.getElementById('chat-mic');
 
-  function openChat()  { isOpen = true;  win.classList.add('open');    badge.classList.remove('show'); }
-  function closeChat() { isOpen = false; win.classList.remove('open'); }
+  let isOpen      = false;
+  let sending     = false;
+  let currentMode = null;   // 'ai' | 'human'
+  let ttsEnabled  = true;   // toggled by mute button
+
+  // ── Text-to-Speech (TTS) ───────────────────────────────────────────────────
+  const synth = window.speechSynthesis || null;
+
+  function speak(text) {
+    if (!ttsEnabled || !synth) return null;
+    synth.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang  = 'en-US';
+    utter.rate  = 1.0;
+    utter.pitch = 1.0;
+    // prefer a female voice when available
+    const loadVoice = () => {
+      const voices = synth.getVoices();
+      const female = voices.find(v => /female|zira|samantha|victoria|karen|moira/i.test(v.name));
+      if (female) utter.voice = female;
+    };
+    loadVoice();
+    if (synth.getVoices().length === 0) {
+      window.speechSynthesis.addEventListener('voiceschanged', loadVoice, { once: true });
+    }
+    synth.speak(utter);
+    return utter;
+  }
+
+  // ── Mute toggle ────────────────────────────────────────────────────────────
+  muteBtn.addEventListener('click', () => {
+    ttsEnabled = !ttsEnabled;
+    if (!ttsEnabled) {
+      synth && synth.cancel();
+      muteBtn.textContent = '🔇';
+      muteBtn.title = 'Unmute AI voice';
+      muteBtn.classList.add('muted');
+    } else {
+      muteBtn.textContent = '🔊';
+      muteBtn.title = 'Mute AI voice';
+      muteBtn.classList.remove('muted');
+    }
+  });
+
+  // ── Speech Recognition (STT) ───────────────────────────────────────────────
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition  = null;
+  let isListening  = false;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang             = 'en-US';
+    recognition.interimResults   = true;
+    recognition.maxAlternatives  = 1;
+    recognition.continuous       = false;
+
+    recognition.onstart = () => {
+      isListening = true;
+      micBtn.classList.add('listening');
+      micBtn.title = 'Listening… click to stop';
+      inputEl.placeholder = 'Listening…';
+    };
+
+    recognition.onresult = (e) => {
+      let interim = '', final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) final += t;
+        else interim += t;
+      }
+      inputEl.value = final || interim;
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      micBtn.classList.remove('listening');
+      micBtn.title = 'Click to speak';
+      inputEl.placeholder = 'Type a message…';
+      // auto-send whatever was captured
+      if (inputEl.value.trim()) sendMessage();
+    };
+
+    recognition.onerror = (e) => {
+      isListening = false;
+      micBtn.classList.remove('listening');
+      inputEl.placeholder = 'Type a message…';
+      if (e.error !== 'no-speech') addMsg('Mic error: ' + e.error, 'system');
+    };
+  }
+
+  micBtn.addEventListener('click', () => {
+    if (!recognition) {
+      addMsg('Voice input is not supported in this browser.', 'system');
+      return;
+    }
+    if (isListening) {
+      recognition.stop();
+    } else {
+      synth && synth.cancel();   // stop any ongoing TTS before we listen
+      recognition.start();
+    }
+  });
+
+  // ── Open / close ───────────────────────────────────────────────────────────
+  function openChat()  {
+    isOpen = true;
+    win.classList.add('open');
+    badge.classList.remove('show');
+  }
+  function closeChat() {
+    isOpen = false;
+    win.classList.remove('open');
+    synth && synth.cancel();
+    if (isListening && recognition) recognition.stop();
+  }
   bubble.addEventListener('click', () => isOpen ? closeChat() : openChat());
   document.getElementById('chat-close').addEventListener('click', closeChat);
 
@@ -394,11 +558,7 @@
   }
 
   function updateSwitchBtn(mode) {
-    if (mode === 'ai') {
-      switchBtn.textContent = '👤 Switch to Maria';
-    } else {
-      switchBtn.textContent = '🤖 Switch to AI';
-    }
+    switchBtn.textContent = mode === 'ai' ? '👤 Switch to Maria' : '🤖 Switch to AI';
     switchBtn.classList.add('visible');
   }
 
@@ -406,7 +566,22 @@
     const m = document.createElement('div');
     m.className = `chat-msg ${type}`;
     if (type === 'maria') {
-      m.innerHTML = `<span class="maria-label">Maria</span><span>${escapeHtml(text)}</span>`;
+      const label = document.createElement('span');
+      label.className = 'maria-label';
+      label.textContent = 'Maria';
+      const body = document.createElement('span');
+      body.textContent = text;
+      m.appendChild(label);
+      m.appendChild(body);
+
+      // read AI replies aloud and show 🔊 while speaking
+      if (currentMode === 'ai') {
+        const utter = speak(text);
+        if (utter) {
+          label.classList.add('speaking');
+          utter.onend = () => label.classList.remove('speaking');
+        }
+      }
     } else {
       m.textContent = text;
     }
@@ -415,14 +590,9 @@
     return m;
   }
 
-  function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
   const socket = io();
 
-  // ── Register step ──────────────────────────────────────────────────────────
-
+  // ── Register ───────────────────────────────────────────────────────────────
   function submitRegister() {
     const name = regName.value.trim();
     if (!name) { regError.textContent = 'Please enter your name.'; return; }
@@ -431,7 +601,6 @@
     regBtn.disabled = true;
     socket.emit('register_visitor', { name });
   }
-
   regBtn.addEventListener('click', submitRegister);
   regName.addEventListener('keydown', e => { if (e.key === 'Enter') submitRegister(); });
 
@@ -440,7 +609,6 @@
     regBtn.textContent = 'Start chatting →';
     regBtn.disabled = false;
   });
-
   socket.on('error', data => {
     regError.textContent = data.message;
     regBtn.textContent = 'Start chatting →';
@@ -448,33 +616,30 @@
   });
 
   // ── Mode selection ─────────────────────────────────────────────────────────
+  function selectMode(mode) { socket.emit('select_mode', { mode }); }
 
-  function selectMode(mode) {
-    socket.emit('select_mode', { mode });
-  }
-
-  document.getElementById('mode-ai').addEventListener('click', () => selectMode('ai'));
+  document.getElementById('mode-ai').addEventListener('click',    () => selectMode('ai'));
   document.getElementById('mode-human').addEventListener('click', () => selectMode('human'));
-
-  // Switch button in header — toggles to the other mode
-  switchBtn.addEventListener('click', () => {
-    const newMode = currentMode === 'ai' ? 'human' : 'ai';
-    selectMode(newMode);
-  });
+  switchBtn.addEventListener('click', () => selectMode(currentMode === 'ai' ? 'human' : 'ai'));
 
   socket.on('mode_selected', data => {
     currentMode = data.mode;
     updateSwitchBtn(data.mode);
     showStep(stepMessage);
+
     if (data.mode === 'ai') {
-      addMsg("Switched to AI assistant. Ask me anything about Maria!", 'system');
+      micBtn.classList.add('ai-mode');
+      muteBtn.classList.add('ai-mode');
+      addMsg('Switched to AI assistant. Ask me anything about Maria! (🎙️ voice enabled)', 'system');
     } else {
-      addMsg("Switched to personal chat. Maria will reply when available.", 'system');
+      micBtn.classList.remove('ai-mode');
+      muteBtn.classList.remove('ai-mode');
+      synth && synth.cancel();
+      addMsg('Switched to personal chat. Maria will reply when available.', 'system');
     }
   });
 
-  // ── Message step ───────────────────────────────────────────────────────────
-
+  // ── Messaging ──────────────────────────────────────────────────────────────
   function sendMessage() {
     if (sending) return;
     const text = inputEl.value.trim();
@@ -514,4 +679,3 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
 })();
-
