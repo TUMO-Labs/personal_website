@@ -18,6 +18,63 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 
+  <style>
+    /* ── Round photo ── */
+    .hero-photo {
+      border-radius: 50% !important;
+      width: 300px !important;
+      height: 300px !important;
+      object-fit: cover;
+      object-position: 60% 50%;
+      
+    }
+    .photo-wrap { width: 300px !important; }
+    .photo-border {
+      border-radius: 50% !important;
+      inset: 10px 10px -10px -10px !important;
+    }
+
+    /* ── Clickable location ── */
+    .location-link {
+      font-size: 15px;
+      color: var(--text-dim);
+      display: inline-block;
+      margin-top: 6px;
+      transition: color 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .location-link:hover { color: var(--accent); }
+
+    /* ── Clickable skill cards ── */
+    .skill-card-link {
+      display: contents;
+      text-decoration: none;
+      color: inherit;
+    }
+    .skill-card[data-href] {
+      cursor: pointer;
+    }
+    .skill-card[data-href]:hover::after {
+      content: '↗';
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      font-size: 13px;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+    .skill-card[data-href] { position: relative; }
+
+    /* ── Clickable university ── */
+    .edu-school-link {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .edu-school-link:hover { color: var(--accent); }
+  </style>
+
 </head>
 
 <body>
@@ -33,6 +90,8 @@
     <div class="nav-links">
 
       <a href="https://www.linkedin.com/in/maria-aslanyan-797147334/" target="_blank" class="nav-link btn-anim">LinkedIn</a>
+
+      <a href="https://github.com/mariaaslanyan" target="_blank" class="nav-link btn-anim">GitHub</a>
 
       <a href="/static/assets/CV_Maria_Aslanyan.pdf" target="_blank" class="nav-link btn-anim">CV</a>
 
@@ -60,7 +119,11 @@
 
         Student · Developer · Problem Solver<br>
 
-        <span class="location">📍 Yerevan, Armenia</span>
+        <a
+          href="https://www.google.com/maps/search/Yerevan,+Armenia"
+          target="_blank"
+          class="location-link"
+        >📍 Yerevan, Armenia</a>
 
       </p>
 
@@ -71,6 +134,8 @@
         <a href="mailto:mariaaslanyan96@gmail.com" class="contact-inline">✉️ mariaaslanyan96@gmail.com</a>
 
         <a href="https://www.linkedin.com/in/maria-aslanyan-797147334/" target="_blank" class="contact-inline">💼 LinkedIn</a>
+
+        <a href="https://github.com/mariaaslanyan" target="_blank" class="contact-inline">🐙 GitHub</a>
 
       </div>
 
@@ -114,7 +179,7 @@
 
     <div class="skills-grid">
 
-      <div class="skill-card reveal-fade">
+      <div class="skill-card reveal-fade" data-href="https://www.google.com/search?q=C%2B%2B+programming+language" onclick="window.open(this.dataset.href,'_blank')">
 
         <div class="skill-icon">⌨️</div>
 
@@ -124,7 +189,7 @@
 
       </div>
 
-      <div class="skill-card reveal-fade">
+      <div class="skill-card reveal-fade" data-href="https://www.google.com/search?q=Python+programming+language" onclick="window.open(this.dataset.href,'_blank')">
 
         <div class="skill-icon">🐍</div>
 
@@ -134,7 +199,7 @@
 
       </div>
 
-      <div class="skill-card reveal-fade">
+      <div class="skill-card reveal-fade" data-href="https://www.google.com/search?q=mathematical+analysis+and+linear+algebra" onclick="window.open(this.dataset.href,'_blank')">
 
         <div class="skill-icon">∑</div>
 
@@ -144,7 +209,7 @@
 
       </div>
 
-      <div class="skill-card reveal-fade">
+      <div class="skill-card reveal-fade" data-href="https://www.google.com/search?q=discrete+mathematics+and+probability+theory" onclick="window.open(this.dataset.href,'_blank')">
 
         <div class="skill-icon">🎲</div>
 
@@ -154,7 +219,7 @@
 
       </div>
 
-      <div class="skill-card reveal-fade">
+      <div class="skill-card reveal-fade" data-href="https://www.google.com/search?q=SQL+database+language" onclick="window.open(this.dataset.href,'_blank')">
 
         <div class="skill-icon">🗄</div>
 
@@ -188,7 +253,9 @@
 
         <div class="edu-body">
 
-          <div class="edu-school">Russian-Armenian University</div>
+          <div class="edu-school">
+            <a href="https://www.google.com/search?q=Russian-Armenian+University+Yerevan" target="_blank" class="edu-school-link">Russian-Armenian University</a>
+          </div>
 
           <div class="edu-degree">Applied Mathematics & Informatics</div>
 
@@ -204,7 +271,11 @@
 
         <div class="edu-body">
 
-          <div class="edu-school">TUMO Labs</div>
+          <div class="edu-school">
+
+            <a href="https://www.google.com/search?q=TUMO+Labs+Yerevan" target="_blank" class="edu-school-link">TUMO Labs</a>
+
+          </div>
 
           <div class="edu-degree">Advanced Tech & Creative Lab Program</div>
 
@@ -331,4 +402,3 @@
 </body>
 
 </html>
-

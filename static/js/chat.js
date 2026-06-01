@@ -640,8 +640,27 @@ function speak(text) {
     messagesEl.scrollTop = messagesEl.scrollHeight;
     return m;
   }
-
-  const socket = io();
+	// Add this alongside your existing addMsg() function:
+function addMsgRaw(text, type) {
+    const m = document.createElement('div');
+    m.className = `chat-msg ${type}`;
+    if (type === 'maria') {
+        const label = document.createElement('span');
+        label.className = 'maria-label';
+        label.textContent = 'Maria';
+        const body = document.createElement('span');
+        body.textContent = text;
+        m.appendChild(label);
+        m.appendChild(body);
+        // no speak() here — silent replay
+    } else {
+        m.textContent = text;
+    }
+    messagesEl.appendChild(m);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+  const savedRoom = localStorage.getItem('chat_room_id');
+  const socket = io({ query: { room_id: savedRoom || '' } });
 
   // ── Register ───────────────────────────────────────────────────────────────
   function submitRegister() {
@@ -666,6 +685,31 @@ function speak(text) {
     regBtn.disabled = false;
   });
 
+socket.on('connected', data => {
+    // persist room across refreshes
+    localStorage.setItem('chat_room_id', data.room);
+
+    // restore chat history if any
+    if (data.history && data.history.length > 0) {
+        // skip register/mode steps — go straight to messages
+        showStep(stepMessage);
+        switchBtn.classList.add('visible');
+	data.history.forEach(msg => {
+    	if (msg.sender === 'visitor') {
+        	addMsgRaw(msg.text, 'visitor');
+         } else {
+        	addMsgRaw(msg.text, 'maria');
+   	   }
+	}); 
+                // restore current mode based on last known state
+        currentMode = localStorage.getItem('chat_mode') || 'ai';
+        updateSwitchBtn(currentMode);
+        if (currentMode === 'ai') {
+            micBtn.classList.add('ai-mode');
+            muteBtn.classList.add('ai-mode');
+        }
+    }
+});
   // ── Mode selection ─────────────────────────────────────────────────────────
   function selectMode(mode) { socket.emit('select_mode', { mode }); }
 
@@ -674,6 +718,7 @@ function speak(text) {
   switchBtn.addEventListener('click', () => selectMode(currentMode === 'ai' ? 'human' : 'ai'));
 
   socket.on('mode_selected', data => {
+    localStorage.setItem('chat_mode', data.mode);  
     currentMode = data.mode;
     updateSwitchBtn(data.mode);
     showStep(stepMessage);

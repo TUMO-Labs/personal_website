@@ -31,8 +31,8 @@ Contact:mariaaslanyan96@gmail.com
 LinkedIn : www.linkedin.com/in/maria -aslanyan-797147334 
 GitHub: https://github.com/mariaaslanyan
 
-Interests: Game development, backend systems, algorithmic problem solving, web development, software engineering , Hardware engineering 
-Hobbies : arts , sports
+Interests: Game development, backend systems, algorithmic problem solving, web development, software engineering , Hardware engineering, Applied Mathematics 
+Hobbies : arts , sports , handcraft , hiking
 Personality: Maria ia a outgoing and friendly person who likes to spend time withe her loved ones including her friends and family. She is a very generous person and loves to help people. Throughout her education she has completed many group projects which helped her develop communication skills, work in teams , and find solutions best fitting the entire team. She loves to speak up and bring justice to situations where it is needed.
 --- END ---
 
