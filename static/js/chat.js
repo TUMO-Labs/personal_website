@@ -94,19 +94,21 @@
       display: none;
       background: #eff6ff;
       border: 1.5px solid #bfd4ef;
-      border-radius: 20px;
-      padding: 4px 10px;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
       color: #3b82f6;
       cursor: pointer;
-      letter-spacing: 0.06em;
-      white-space: nowrap;
+      align-items: center;
+      justify-content: center;
       transition: background 0.2s, border-color 0.2s;
       flex-shrink: 0;
+      padding: 0;
+      line-height: 1;
     }
     #chat-switch:hover { background: #dbeafe; border-color: #3b82f6; }
-    #chat-switch.visible { display: block; }
+    #chat-switch.visible { display: flex; }
     #chat-close {
       background: none; border: none; font-size: 18px;
       color: #4f6f96; cursor: pointer; padding: 2px 4px;
@@ -440,29 +442,77 @@
   let ttsEnabled  = true;   // toggled by mute button
 
   // ── Text-to-Speech (TTS) ───────────────────────────────────────────────────
-  const synth = window.speechSynthesis || null;
+   // ── Text-to-Speech (TTS) ───────────────────────────────────────────────────
+const synth = window.speechSynthesis || null;
 
-  function speak(text) {
-    if (!ttsEnabled || !synth) return null;
-    synth.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang  = 'en-US';
-    utter.rate  = 1.0;
-    utter.pitch = 1.0;
-    // prefer a female voice when available
-    const loadVoice = () => {
-      const voices = synth.getVoices();
-      const female = voices.find(v => /female|zira|samantha|victoria|karen|moira/i.test(v.name));
-      if (female) utter.voice = female;
-    };
-    loadVoice();
-    if (synth.getVoices().length === 0) {
-      window.speechSynthesis.addEventListener('voiceschanged', loadVoice, { once: true });
-    }
-    synth.speak(utter);
+// Voice priority list — best neural/natural voices first
+const VOICE_PRIORITY = [
+  'Microsoft Aria Online (Natural) - English (United States)',
+  'Microsoft Jenny Online (Natural) - English (United States)',
+  'Microsoft Sonia Online (Natural) - English (United Kingdom)',
+  'Google UK English Female',
+  'Google US English',
+  'Samantha',   // macOS / iOS
+  'Karen',      // macOS Australian
+  'Moira',      // macOS Irish
+];
+
+let _cachedVoice = null;
+
+function getBestVoice() {
+  if (_cachedVoice) return _cachedVoice;
+  const voices = synth.getVoices();
+  if (!voices.length) return null;
+
+  for (const name of VOICE_PRIORITY) {
+    const match = voices.find(v => v.name === name);
+    if (match) { _cachedVoice = match; return match; }
+  }
+  // Fallback: prefer any online/network voice (usually neural)
+  const online = voices.find(v => !v.localService && v.lang.startsWith('en'));
+  if (online) { _cachedVoice = online; return online; }
+
+  // Last resort: any English voice
+  _cachedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+  return _cachedVoice;
+}
+
+// Add natural pauses without SSML
+function addNaturalPauses(text) {
+  return text
+    .replace(/\. ([A-Z])/g, '.  $1')   // longer pause between sentences
+    .replace(/\? /g, '?  ')
+    .replace(/! /g, '!  ')
+    .replace(/, /g, ',  ');             // slight breath after commas
+}
+
+function speak(text) {
+  if (!ttsEnabled || !synth) return null;
+  synth.cancel();
+
+  const utter = new SpeechSynthesisUtterance(addNaturalPauses(text));
+  utter.lang  = 'en-US';
+  utter.rate  = 0.92;   // slightly slower — more natural, less rushed
+  utter.pitch = 1.08;   // slightly warmer pitch
+  utter.volume = 1.0;
+
+  const voice = getBestVoice();
+  if (voice) {
+    utter.voice = voice;
+  } else {
+    // voices not loaded yet — wait and retry once
+    synth.addEventListener('voiceschanged', () => {
+      _cachedVoice = null;
+      const v = getBestVoice();
+      if (v) utter.voice = v;
+      synth.speak(utter);
+    }, { once: true });
     return utter;
   }
 
+  synth.speak(utter);
+  return utter;
+} 
   // ── Mute toggle ────────────────────────────────────────────────────────────
   muteBtn.addEventListener('click', () => {
     ttsEnabled = !ttsEnabled;
@@ -558,7 +608,8 @@
   }
 
   function updateSwitchBtn(mode) {
-    switchBtn.textContent = mode === 'ai' ? '👤 Switch to Maria' : '🤖 Switch to AI';
+    switchBtn.textContent = mode === 'ai' ? '👤' : '🤖';
+    switchBtn.title = mode === 'ai' ? 'Switch to Maria' : 'Switch to AI';
     switchBtn.classList.add('visible');
   }
 
@@ -679,3 +730,4 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
 })();
+

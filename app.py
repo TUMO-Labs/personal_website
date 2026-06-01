@@ -1,6 +1,7 @@
 import gevent.monkey
 gevent.monkey.patch_all()
 import logging
+import re
 import os
 import uuid
 import requests
@@ -162,8 +163,10 @@ def _handle_ai_message(sid, username, text):
                 max_tokens=500,
             )           
             reply = response.choices[0].message.content
+            reply = re.sub(r'</?assistant>', '', reply, flags=re.IGNORECASE)
+            reply = re.sub(r'</?user>', '', reply, flags=re.IGNORECASE)
+            reply = re.sub(r'\s+', ' ', reply).strip()   # also fixes merged words
             history.append({"role": "assistant", "content": reply})
-
         except Exception as e:
             logging.exception("AI Processing failed") 
             reply = "Sorry, I'm having a little trouble right now."
